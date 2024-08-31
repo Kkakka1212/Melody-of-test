@@ -283,214 +283,164 @@
 
         <!-- 새 글 작성 폼 -->
         <div class="form-container">
-    <h2>새 게시글 작성</h2>
-    <form id="postForm" action="/submit-post" method="POST" enctype="multipart/form-data">
-        <label for="title">제목:</label>
-        <input type="text" id="title" name="title" required>
+            <h2>새 게시글 작성</h2>
+            <form id="postForm" action="/submit-post" method="POST" enctype="multipart/form-data">
+                <label for="title">제목:</label>
+                <input type="text" id="title" name="title" required>
 
-        <label for="content">내용:</label>
-        <textarea id="content" name="content" rows="5" required></textarea>
+                <label for="content">내용:</label>
+                <textarea id="content" name="content" rows="5" required></textarea>
 
-        <label for="mainTag">대분류(대태그):</label>
-        <select id="mainTag" onchange="updateSubTags()">
-            <option value="">대태그 선택</option>
-            <option value="대태그1">대태그1</option>
-            <option value="대태그2">대태그2</option>
-            <option value="대태그3">대태그3</option>
-            <option value="대태그4">대태그4</option>
-            <option value="대태그5">대태그5</option>
-        </select>
+                <label for="mainTag">대분류(대태그):</label>
+                <select id="mainTag" onchange="updateSubTags()">
+                    <option value="">대태그 선택</option>
+                    <option value="대태그1">대태그1</option>
+                    <option value="대태그2">대태그2</option>
+                    <option value="대태그3">대태그3</option>
+                    <option value="대태그4">대태그4</option>
+                    <option value="대태그5">대태그5</option>
+                </select>
 
-        <label for="subTag">소분류(소태그):</label>
-        <select id="subTag">
-            <option value="">소태그 선택</option>
-            <!-- 소태그 옵션은 JavaScript에 의해 동적으로 추가됨 -->
-        </select>
+                <label for="subTag">소분류(소태그):</label>
+                <select id="subTag">
+                    <option value="">소태그 선택</option>
+                    <!-- 소태그 옵션은 JavaScript에 의해 동적으로 추가됨 -->
+                </select>
 
-        <button type="button" onclick="addTag()">태그 추가</button>
+                <button type="button" onclick="addTag()">태그 추가</button>
 
-        <div id="selectedTags" class="selected-tags"></div>
+                <div id="selectedTags" class="selected-tags"></div>
 
-        <label for="files">이미지 첨부:</label>
-        <input type="file" id="files" name="files" multiple accept="image/*" onchange="previewImages()">
+                <label for="files">이미지 첨부:</label>
+                <input type="file" id="files" name="files" multiple accept="image/*" onchange="previewImages()">
 
-        <div class="image-preview" id="imagePreview"></div>
+                <div class="image-preview" id="imagePreview"></div>
 
-        <button type="submit">게시글 작성</button>
-    </form>
-</div>
+                <button type="submit">게시글 작성</button>
+            </form>
+        </div>
+    </div>
 
-<script>
-    const imagePreview = document.getElementById('imagePreview');
-    const selectedTags = document.getElementById('selectedTags');
-    const mainTagSelect = document.getElementById('mainTag');
-    const subTagSelect = document.getElementById('subTag');
+    <footer>
+        © 2024 나의 포럼 웹사이트
+    </footer>
 
-    // 대태그와 소태그 매핑
-    const subTagsMapping = {
-        "대태그1": ["소태그1-1", "소태그1-2", "소태그1-3"],
-        "대태그2": ["소태그2-1", "소태그2-2", "소태그2-3"],
-        "대태그3": ["소태그3-1", "소태그3-2", "소태그3-3"],
-        "대태그4": ["소태그4-1", "소태그4-2", "소태그4-3"],
-        "대태그5": ["소태그5-1", "소태그5-2", "소태그5-3"]
-    };
-
-    function updateSubTags() {
-        const selectedMainTag = mainTagSelect.value;
-        subTagSelect.innerHTML = '<option value="">소태그 선택</option>'; // 초기화
-
-        if (selectedMainTag in subTagsMapping) {
-            const subTags = subTagsMapping[selectedMainTag];
-            subTags.forEach(subTag => {
-                const option = document.createElement('option');
-                option.value = subTag;
-                option.textContent = subTag;
-                subTagSelect.appendChild(option);
-            });
-        }
-    }
-
-    function addTag() {
-        const mainTag = mainTagSelect.value;
-        const subTag = subTagSelect.value;
-
-        if (mainTag && subTag) {
-            const tagItem = document.createElement('span');
-            tagItem.textContent = `${mainTag} - ${subTag}`;
-            tagItem.classList.add('tag');
-            tagItem.onclick = function() {
-                selectedTags.removeChild(tagItem);
-            };
-            selectedTags.appendChild(tagItem);
-            mainTagSelect.value = ''; // 선택한 대태그 초기화
-            subTagSelect.innerHTML = '<option value="">소태그 선택</option>'; // 소태그 초기화
-        } else {
-            alert("대태그와 소태그를 모두 선택해 주세요.");
-        }
-    }
-
-    function previewImages() {
-        imagePreview.innerHTML = ''; // 이전 이미지 미리보기 삭제
-        const files = document.getElementById('files').files;
-
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            const reader = new FileReader();
-
-            reader.onload = function(event) {
-                const imageItem = document.createElement('div');
-                imageItem.classList.add('image-item');
-
-                const img = document.createElement('img');
-                img.src = event.target.result;
-
-                const deleteButton = document.createElement('button');
-                deleteButton.textContent = '삭제';
-                deleteButton.onclick = function() {
-                    const newFiles = Array.from(files).filter((_, index) => index !== i);
-                    document.getElementById('files').files = new DataTransfer().files; // Clear file input
-                    newFiles.forEach((file) => {
-                        const dataTransfer = new DataTransfer();
-                        dataTransfer.items.add(file);
-                        document.getElementById('files').files = dataTransfer.files;
-                    });
-                    previewImages(); // 업데이트된 이미지 미리보기
-                };
-
-                imageItem.appendChild(img);
-                imageItem.appendChild(deleteButton);
-                imagePreview.appendChild(imageItem);
-            };
-
-            reader.readAsDataURL(file);
-        }
-    }
-</script>
-
-<style>
-    .selected-tags {
-        margin: 1rem 0;
-    }
-
-    .tag {
-        background-color: #007bff;
-        color: white;
-        padding: 0.3rem 0.6rem;
-        border-radius: 3px;
-        margin: 0.2rem;
-        cursor: pointer;
-    }
-
-    .tag:hover {
-        background-color: #0056b3;
-    }
-
-    .image-item {
-        display: flex;
-        align-items: center;
-        margin: 0.5rem 0;
-    }
-
-    .image-item img {
-        max-width: 100px;
-        margin-right: 0.5rem;
-    }
-
-    .image-item button {
-        background-color: #dc3545;
-        color: white;
-        border: none;
-        padding: 0.2rem 0.5rem;
-        cursor: pointer;
-        border-radius: 3px;
-    }
-
-    .image-item button:hover {
-        background-color: #c82333;
-    }
-</style>
-        
-    <!-- JavaScript 코드를 여기에 추가합니다 -->
     <script>
+        // 댓글 열고 닫기 기능
+        function toggleComments(element) {
+            const commentSection = element.nextElementSibling;
+            if (commentSection.style.display === 'none' || commentSection.style.display === '') {
+                commentSection.style.display = 'block';
+                element.textContent = '댓글 숨기기';
+            } else {
+                commentSection.style.display = 'none';
+                element.textContent = '댓글 보기';
+            }
+        }
+
+        // 검색 기능
         function searchPosts() {
             const input = document.getElementById('searchInput').value.toLowerCase();
             const posts = document.querySelectorAll('.post');
 
             posts.forEach(post => {
-                const title = post.getAttribute('data-title').toLowerCase();
+                const title = post.querySelector('h2').textContent.toLowerCase();
                 const tags = post.getAttribute('data-tags').toLowerCase();
 
                 if (title.includes(input) || tags.includes(input)) {
-                    post.style.display = ''; // 해당 게시글을 보이도록 설정
+                    post.style.display = 'block';
                 } else {
-                    post.style.display = 'none'; // 해당 게시글을 숨기도록 설정
+                    post.style.display = 'none';
                 }
             });
         }
 
-        function toggleComments(element) {
-            const commentSection = element.nextElementSibling;
+        // 좋아요 기능
+        function likePost(button) {
+            const likeCountElement = button.querySelector('.like-count');
+            let likeCount = parseInt(likeCountElement.textContent);
+            likeCountElement.textContent = likeCount + 1;
+        }
 
-            if (commentSection.style.display === 'block') {
-                commentSection.style.display = 'none';
-                element.textContent = '댓글 보기';
+        // 대태그와 소태그 매핑
+        const subTagsMapping = {
+            "대태그1": ["소태그1-1", "소태그1-2", "소태그1-3"],
+            "대태그2": ["소태그2-1", "소태그2-2", "소태그2-3"],
+            "대태그3": ["소태그3-1", "소태그3-2", "소태그3-3"],
+            "대태그4": ["소태그4-1", "소태그4-2", "소태그4-3"],
+            "대태그5": ["소태그5-1", "소태그5-2", "소태그5-3"]
+        };
+
+        function updateSubTags() {
+            const selectedMainTag = document.getElementById('mainTag').value;
+            const subTagSelect = document.getElementById('subTag');
+            subTagSelect.innerHTML = '<option value="">소태그 선택</option>'; // 초기화
+
+            if (selectedMainTag in subTagsMapping) {
+                const subTags = subTagsMapping[selectedMainTag];
+                subTags.forEach(subTag => {
+                    const option = document.createElement('option');
+                    option.value = subTag;
+                    option.textContent = subTag;
+                    subTagSelect.appendChild(option);
+                });
+            }
+        }
+
+        function addTag() {
+            const mainTag = document.getElementById('mainTag').value;
+            const subTag = document.getElementById('subTag').value;
+            const selectedTags = document.getElementById('selectedTags');
+
+            if (mainTag && subTag) {
+                const tagItem = document.createElement('span');
+                tagItem.textContent = `${mainTag} - ${subTag}`;
+                tagItem.classList.add('tag');
+                tagItem.onclick = function() {
+                    selectedTags.removeChild(tagItem);
+                };
+                selectedTags.appendChild(tagItem);
+                document.getElementById('mainTag').value = ''; // 선택한 대태그 초기화
+                document.getElementById('subTag').innerHTML = '<option value="">소태그 선택</option>'; // 소태그 초기화
             } else {
-                commentSection.style.display = 'block';
-                element.textContent = '댓글 숨기기';
+                alert("대태그와 소태그를 모두 선택해 주세요.");
+            }
+        }
+
+        function previewImages() {
+            const imagePreview = document.getElementById('imagePreview');
+            imagePreview.innerHTML = ''; // 이전 이미지 미리보기 삭제
+            const files = document.getElementById('files').files;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+
+                reader.onload = function(event) {
+                    const imageItem = document.createElement('div');
+                    imageItem.classList.add('image-item');
+
+                    const img = document.createElement('img');
+                    img.src = event.target.result;
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = '삭제';
+                    deleteButton.onclick = function() {
+                        const newFiles = Array.from(files).filter((_, index) => index !== i);
+                        const dataTransfer = new DataTransfer();
+                        newFiles.forEach(file => dataTransfer.items.add(file));
+                        document.getElementById('files').files = dataTransfer.files;
+                        previewImages(); // 업데이트된 이미지 미리보기
+                    };
+
+                    imageItem.appendChild(img);
+                    imageItem.appendChild(deleteButton);
+                    imagePreview.appendChild(imageItem);
+                };
+
+                reader.readAsDataURL(file);
             }
         }
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-        
