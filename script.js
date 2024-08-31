@@ -95,3 +95,68 @@ function searchPosts() {
         }
     });
 }
+// 저장 버튼 클릭 시 게시글을 로컬 스토리지에 저장하는 함수
+function savePost() {
+    const title = document.getElementById('title').value;
+    const content = document.getElementById('content').value;
+    const tags = Array.from(document.querySelectorAll('.selected-tags .tag')).map(tag => tag.textContent);
+    const files = document.getElementById('files').files;
+
+    // 게시글 데이터를 객체로 구성
+    const post = {
+        title,
+        content,
+        tags,
+        files: Array.from(files).map(file => URL.createObjectURL(file))
+    };
+
+    // 로컬 스토리지에 저장
+    let posts = JSON.parse(localStorage.getItem('posts')) || [];
+    posts.push(post);
+    localStorage.setItem('posts', JSON.stringify(posts));
+
+    // 게시글 작성 후 폼 초기화
+    document.getElementById('postForm').reset();
+    document.getElementById('imagePreview').innerHTML = '';
+    document.querySelectorAll('.selected-tags .tag').forEach(tag => tag.remove());
+}
+
+// 게시글 로드
+function loadPosts() {
+    const posts = JSON.parse(localStorage.getItem('posts')) || [];
+    const container = document.querySelector('.container');
+
+    posts.forEach(post => {
+        // 게시글 HTML 구조 생성
+        const postDiv = document.createElement('div');
+        postDiv.classList.add('post');
+        postDiv.innerHTML = `
+            <h2>${post.title}</h2>
+            <div class="tags">
+                ${post.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+            </div>
+            <p>${post.content}</p>
+            <div class="image-preview">
+                ${post.files.map(file => `<img src="${file}" alt="첨부 이미지">`).join('')}
+            </div>
+            <button class="like-btn" onclick="likePost(this)">좋아요 <span class="like-count">0</span></button>
+            <div class="toggle-comments" onclick="toggleComments(this)">댓글 보기</div>
+            <div class="comment-section">
+                <h3>댓글</h3>
+                <textarea rows="3" placeholder="댓글을 작성하세요..."></textarea>
+                <button type="button">댓글 달기</button>
+            </div>
+        `;
+
+        container.appendChild(postDiv);
+    });
+}
+
+// 페이지 로드 시 게시글 불러오기
+document.addEventListener('DOMContentLoaded', loadPosts);
+
+// 게시글 저장 버튼 클릭 이벤트 추가
+document.getElementById('postForm').addEventListener('submit', function(event) {
+    event.preventDefault(); // 기본 폼 제출 방지
+    savePost();
+});
