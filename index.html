@@ -620,32 +620,55 @@
         event.preventDefault(); // 기본 폼 제출 방지
         savePost();
     });
-<button class="like-btn" onclick="likePost(this)">좋아요 <span class="like-count">0</span></button>
+<!-- 기존 게시글 예시 -->
+<div class="post">
+    <h2>게시글 제목</h2>
+    <p>게시글 내용</p>
+    <button class="like-btn">좋아요 <span class="like-count">0</span></button>
+</div>
+
+<!-- 새 게시글 추가 시에도 같은 클래스와 구조를 유지 -->
 <script>
     // 좋아요 버튼 클릭 시 좋아요 수 증가 및 취소
-    function likePost(button) {
-        // 현재 좋아요 수 가져오기
-        const likeCountSpan = button.querySelector('.like-count');
+    document.addEventListener('click', function(event) {
+        // 좋아요 버튼이 클릭된 경우
+        if (event.target && event.target.matches('.like-btn')) {
+            handleLikeButton(event.target);
+        }
+    });
+
+    function handleLikeButton(clickedButton) {
+        // 클릭된 버튼의 좋아요 수 가져오기
+        const likeCountSpan = clickedButton.querySelector('.like-count');
         let likeCount = parseInt(likeCountSpan.textContent, 10);
-        
-        // 'liked' 클래스가 버튼에 있는지 확인
-        const isLiked = button.classList.contains('liked');
-        
+
+        // 클릭된 버튼의 'liked' 상태 확인
+        const isLiked = clickedButton.classList.contains('liked');
+
+        // 클릭된 버튼의 좋아요 수 조정
         if (isLiked) {
             // 좋아요 취소
             likeCount--;
-            button.classList.remove('liked'); // 'liked' 클래스 제거
+            clickedButton.classList.remove('liked'); // 'liked' 클래스 제거
+            clickedButton.style.backgroundColor = ''; // 색상 초기화
         } else {
             // 좋아요 추가
             likeCount++;
-            button.classList.add('liked'); // 'liked' 클래스 추가
+            clickedButton.classList.add('liked'); // 'liked' 클래스 추가
+            clickedButton.style.backgroundColor = '#007BFF'; // 클릭된 버튼 색상 변경
         }
-        
+
         // 좋아요 수 업데이트
         likeCountSpan.textContent = likeCount;
+
+        // 나머지 버튼 상태 업데이트
+        const allLikeButtons = document.querySelectorAll('.like-btn');
+        allLikeButtons.forEach(button => {
+            if (button !== clickedButton && button.classList.contains('liked')) {
+                button.classList.remove('liked'); // 'liked' 클래스 제거
+                button.querySelector('.like-count').textContent = parseInt(button.querySelector('.like-count').textContent) - 1; // 좋아요 수 감소
+                button.style.backgroundColor = ''; // 색상 초기화
+            }
+        });
     }
 </script>
-
-
-
-               
