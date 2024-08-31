@@ -672,3 +672,164 @@
         });
     }
 </script>
+
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시판</title>
+    <style>
+        /* 여기에는 CSS 스타일을 추가합니다. */
+        .form-container {
+            margin: 20px;
+        }
+        .post {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .like-btn {
+            background-color: lightgray;
+            border: none;
+            cursor: pointer;
+        }
+        .like-btn.active {
+            background-color: gold;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 새 글 작성 폼 -->
+    <div class="form-container">
+        <h2>새 게시글 작성</h2>
+        <form id="postForm">
+            <label for="title">제목:</label>
+            <input type="text" id="title" name="title" required>
+
+            <label for="content">내용:</label>
+            <textarea id="content" name="content" rows="5" required></textarea>
+
+            <button type="button" onclick="submitPost()">게시글 작성</button>
+        </form>
+    </div>
+
+    <!-- 게시글 표시 영역 -->
+    <div class="container"></div>
+
+    <script>
+        // 게시글 제출
+        async function submitPost() {
+            const title = document.getElementById('title').value;
+            const content = document.getElementById('content').value;
+
+            const response = await fetch('/api/posts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ title, content }),
+            });
+
+            if (response.ok) {
+                // 새 게시글을 성공적으로 추가한 후 페이지를 새로고침하여 업데이트된 게시글을 반영
+                location.reload();
+            } else {
+                alert('게시글 작성에 실패했습니다.');
+            }
+        }
+
+        // 페이지 로드 시 게시글과 댓글을 서버에서 가져오기
+        async function loadPosts() {
+            const response = await fetch('/api/posts');
+            const posts = await response.json();
+
+            // 게시글을 DOM에 추가
+            const container = document.querySelector('.container');
+            posts.forEach(post => {
+                const postElement = document.createElement('div');
+                postElement.classList.add('post');
+                postElement.dataset.id = post.id;
+
+                postElement.innerHTML = `
+                    <h2>${post.title}</h2>
+                    <p>${post.content}</p>
+                    <button class="like-btn" data-id="${post.id}">좋아요 <span class="like-count">${post.likes}</span></button>
+                    <div class="comment-section" id="comments-${post.id}"></div>
+                    <textarea id="comment-input-${post.id}" placeholder="댓글을 작성하세요..."></textarea>
+                    <button type="button" onclick="submitComment(${post.id})">댓글 달기</button>
+                `;
+
+                container.appendChild(postElement);
+            });
+
+            // 좋아요 버튼 이벤트 리스너 추가
+            document.addEventListener('click', function(event) {
+                if (event.target && event.target.matches('.like-btn')) {
+                    handleLikeButton(event.target);
+                }
+            });
+        }
+
+        // 좋아요 버튼 클릭 처리
+        async function handleLikeButton(button) {
+            const postId = button.dataset.id;
+            const response = await fetch(`/api/posts/${postId}/like`, {
+                method: 'POST',
+            });
+
+            if (response.ok) {
+                const likeCountSpan = button.querySelector('.like-count');
+                let likeCount = parseInt(likeCountSpan.textContent, 10);
+                likeCount++;
+                likeCountSpan.textContent = likeCount;
+            } else {
+                alert('좋아요 처리에 실패했습니다.');
+            }
+        }
+
+        // 댓글 제출
+        async function submitComment(postId) {
+            const commentInput = document.getElementById(`comment-input-${postId}`);
+            const comment = commentInput.value;
+
+            const response = await fetch(`/api/posts/${postId}/comments`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ comment }),
+            });
+
+            if (response.ok) {
+                // 댓글을 성공적으로 추가한 후 댓글 목록을 새로고침
+                loadComments(postId);
+                commentInput.value = ''; // 댓글 입력란 초기화
+            } else {
+                alert('댓글 작성에 실패했습니다.');
+            }
+        }
+
+        // 댓글 로드
+        async function loadComments(postId) {
+            const response = await fetch(`/api/posts/${postId}/comments`);
+            const comments = await response.json();
+
+            const commentSection = document.getElementById(`comments-${postId}`);
+            commentSection.innerHTML = ''; // 기존 댓글 삭제
+
+            comments.forEach(comment => {
+                const commentElement = document.createElement('div');
+                commentElement.textContent = comment.content;
+                commentSection.appendChild(commentElement);
+            });
+        }
+
+        // 페이지 로드 시 게시글 및 댓글 로드
+        window.onload = loadPosts;
+    </script>
+
+</body>
+</html>
