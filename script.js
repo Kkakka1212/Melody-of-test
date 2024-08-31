@@ -69,3 +69,29 @@ function toggleComments(element) {
         element.textContent = "댓글 숨기기";
     }
 }
+function toggleComments(element) {
+    const commentSection = element.nextElementSibling;
+
+    if (commentSection.style.display === 'block') {
+        commentSection.style.display = 'none';
+        element.textContent = '댓글 보기';
+    } else {
+        commentSection.style.display = 'block';
+        element.textContent = '댓글 숨기기';
+    }
+}
+function searchPosts() {
+    const input = document.getElementById('searchInput').value.toLowerCase();
+    const posts = document.querySelectorAll('.post');
+
+    posts.forEach(post => {
+        const title = post.getAttribute('data-title').toLowerCase();
+        const tags = post.getAttribute('data-tags').toLowerCase();
+
+        if (title.includes(input) || tags.includes(input)) {
+            post.style.display = ''; // 해당 게시글을 보이도록 설정
+        } else {
+            post.style.display = 'none'; // 해당 게시글을 숨기도록 설정
+        }
+    });
+}
