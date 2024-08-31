@@ -282,7 +282,7 @@
         </div>
 
         <!-- 새 글 작성 폼 -->
-     <div class="form-container">
+        <div class="form-container">
     <h2>새 게시글 작성</h2>
     <form id="postForm" action="/submit-post" method="POST" enctype="multipart/form-data">
         <label for="title">제목:</label>
@@ -304,6 +304,7 @@
         <label for="subTag">소분류(소태그):</label>
         <select id="subTag">
             <option value="">소태그 선택</option>
+            <!-- 소태그 옵션은 JavaScript에 의해 동적으로 추가됨 -->
         </select>
 
         <button type="button" onclick="addTag()">태그 추가</button>
@@ -320,29 +321,133 @@
 </div>
 
 <script>
-    // ... 기존 JavaScript 코드 ...
+    const imagePreview = document.getElementById('imagePreview');
+    const selectedTags = document.getElementById('selectedTags');
+    const mainTagSelect = document.getElementById('mainTag');
+    const subTagSelect = document.getElementById('subTag');
 
-    // 폼 제출 시 실행되는 함수
-    document.getElementById('postForm').onsubmit = async function(event) {
-        event.preventDefault(); // 기본 제출 방지
-
-        const formData = new FormData(this);
-        const tags = Array.from(document.querySelectorAll('.selected-tags .tag')).map(tag => tag.textContent);
-        formData.append('tags', JSON.stringify(tags)); // 태그를 JSON 형식으로 추가
-
-        const response = await fetch(this.action, {
-            method: 'POST',
-            body: formData
-        });
-
-        if (response.ok) {
-            alert('게시글이 성공적으로 업로드되었습니다.');
-            // 필요한 경우 폼 초기화 또는 페이지 리프레시
-            this.reset();
-            document.getElementById('selectedTags').innerHTML = ''; // 태그 목록 초기화
-            imagePreview.innerHTML = ''; // 이미지 미리보기 초기화
-        } else {
-            alert('게시글 업로드에 실패했습니다.');
-        }
+    // 대태그와 소태그 매핑
+    const subTagsMapping = {
+        "대태그1": ["소태그1-1", "소태그1-2", "소태그1-3"],
+        "대태그2": ["소태그2-1", "소태그2-2", "소태그2-3"],
+        "대태그3": ["소태그3-1", "소태그3-2", "소태그3-3"],
+        "대태그4": ["소태그4-1", "소태그4-2", "소태그4-3"],
+        "대태그5": ["소태그5-1", "소태그5-2", "소태그5-3"]
     };
+
+    function updateSubTags() {
+        const selectedMainTag = mainTagSelect.value;
+        subTagSelect.innerHTML = '<option value="">소태그 선택</option>'; // 초기화
+
+        if (selectedMainTag in subTagsMapping) {
+            const subTags = subTagsMapping[selectedMainTag];
+            subTags.forEach(subTag => {
+                const option = document.createElement('option');
+                option.value = subTag;
+                option.textContent = subTag;
+                subTagSelect.appendChild(option);
+            });
+        }
+    }
+
+    function addTag() {
+        const mainTag = mainTagSelect.value;
+        const subTag = subTagSelect.value;
+
+        if (mainTag && subTag) {
+            const tagItem = document.createElement('span');
+            tagItem.textContent = `${mainTag} - ${subTag}`;
+            tagItem.classList.add('tag');
+            tagItem.onclick = function() {
+                selectedTags.removeChild(tagItem);
+            };
+            selectedTags.appendChild(tagItem);
+            mainTagSelect.value = ''; // 선택한 대태그 초기화
+            subTagSelect.innerHTML = '<option value="">소태그 선택</option>'; // 소태그 초기화
+        } else {
+            alert("대태그와 소태그를 모두 선택해 주세요.");
+        }
+    }
+
+    function previewImages() {
+        imagePreview.innerHTML = ''; // 이전 이미지 미리보기 삭제
+        const files = document.getElementById('files').files;
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                const imageItem = document.createElement('div');
+                imageItem.classList.add('image-item');
+
+                const img = document.createElement('img');
+                img.src = event.target.result;
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = '삭제';
+                deleteButton.onclick = function() {
+                    const newFiles = Array.from(files).filter((_, index) => index !== i);
+                    document.getElementById('files').files = new DataTransfer().files; // Clear file input
+                    newFiles.forEach((file) => {
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(file);
+                        document.getElementById('files').files = dataTransfer.files;
+                    });
+                    previewImages(); // 업데이트된 이미지 미리보기
+                };
+
+                imageItem.appendChild(img);
+                imageItem.appendChild(deleteButton);
+                imagePreview.appendChild(imageItem);
+            };
+
+            reader.readAsDataURL(file);
+        }
+    }
 </script>
+
+<style>
+    .selected-tags {
+        margin: 1rem 0;
+    }
+
+    .tag {
+        background-color: #007bff;
+        color: white;
+        padding: 0.3rem 0.6rem;
+        border-radius: 3px;
+        margin: 0.2rem;
+        cursor: pointer;
+    }
+
+    .tag:hover {
+        background-color: #0056b3;
+    }
+
+    .image-item {
+        display: flex;
+        align-items: center;
+        margin: 0.5rem 0;
+    }
+
+    .image-item img {
+        max-width: 100px;
+        margin-right: 0.5rem;
+    }
+
+    .image-item button {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 0.2rem 0.5rem;
+        cursor: pointer;
+        border-radius: 3px;
+    }
+
+    .image-item button:hover {
+        background-color: #c82333;
+    }
+</style>
+
+        
