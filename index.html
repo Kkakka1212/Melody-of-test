@@ -1,188 +1,87 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>게시판</title>
+    <title>리스트 보기</title>
     <style>
-        /* CSS 스타일 */
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            margin: 0;
+            padding: 0;
             background-color: #f4f4f4;
         }
-
-        .form-container {
-            margin-bottom: 20px;
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
             padding: 20px;
             background: #fff;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-
-        .post {
-            border: 1px solid #ccc;
-            background: #fff;
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        li {
+            background: #e2e2e2;
+            margin: 8px 0;
             padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
+            border-radius: 4px;
         }
-
-        .like-btn {
-            background-color: lightgray;
-            border: none;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 5px;
+        .list-group {
+            margin-bottom: 20px;
         }
-
-        .like-btn.active {
-            background-color: gold;
-        }
-
-        .comment-section {
-            margin-top: 10px;
+        footer {
+            text-align: center;
             padding: 10px;
-            border-top: 1px solid #ccc;
-        }
-
-        .comment {
-            margin-top: 5px;
-            padding: 5px;
-            background-color: #e9e9e9;
-            border-radius: 5px;
+            margin-top: 20px;
+            background-color: #fff;
+            border-top: 1px solid #ddd;
+            font-size: 0.9em;
+            color: #666;
         }
     </style>
 </head>
 <body>
-
-    <!-- 새 글 작성 폼 -->
-    <div class="form-container">
-        <h2>새 게시글 작성</h2>
-        <form id="postForm">
-            <label for="title">제목:</label>
-            <input type="text" id="title" name="title" required>
-
-            <label for="content">내용:</label>
-            <textarea id="content" name="content" rows="5" required></textarea>
-
-            <button type="button" onclick="submitPost()">게시글 작성</button>
-        </form>
+    <div class="container">
+        <h1>리스트 보기</h1>
+        <div class="list-group">
+            <h2>리스트 1</h2>
+            <ul>
+                <li>항목 1.1</li>
+                <li>항목 1.2</li>
+                <li>항목 1.3</li>
+            </ul>
+        </div>
+        <div class="list-group">
+            <h2>리스트 2</h2>
+            <ul>
+                <li>항목 2.1</li>
+                <li>항목 2.2</li>
+                <li>항목 2.3</li>
+                <li>항목 2.4</li>
+            </ul>
+        </div>
+        <div class="list-group">
+            <h2>리스트 3</h2>
+            <ul>
+                <li>항목 3.1</li>
+                <li>항목 3.2</li>
+                <li>항목 3.3</li>
+                <li>항목 3.4</li>
+                <li>항목 3.5</li>
+            </ul>
+        </div>
+        <footer>
+            간행물 리스트에 있는 소설등의 제목을 검색어에 넣어보세요!
+        </footer>
     </div>
-
-    <!-- 게시글 표시 영역 -->
-    <div class="container"></div>
-
-    <script>
-        // 게시글 제출
-        async function submitPost() {
-            const title = document.getElementById('title').value;
-            const content = document.getElementById('content').value;
-
-            const response = await fetch('/api/posts', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ title, content }),
-            });
-
-            if (response.ok) {
-                location.reload(); // 새 게시글을 성공적으로 추가한 후 페이지를 새로고침
-            } else {
-                alert('게시글 작성에 실패했습니다.');
-            }
-        }
-
-        // 페이지 로드 시 게시글과 댓글을 서버에서 가져오기
-        async function loadPosts() {
-            const response = await fetch('/api/posts');
-            const posts = await response.json();
-
-            // 게시글을 DOM에 추가
-            const container = document.querySelector('.container');
-            posts.forEach(post => {
-                const postElement = document.createElement('div');
-                postElement.classList.add('post');
-                postElement.dataset.id = post.id;
-
-                postElement.innerHTML = `
-                    <h2>${post.title}</h2>
-                    <p>${post.content}</p>
-                    <button class="like-btn" data-id="${post.id}">좋아요 <span class="like-count">${post.likes}</span></button>
-                    <div class="comment-section" id="comments-${post.id}"></div>
-                    <textarea id="comment-input-${post.id}" placeholder="댓글을 작성하세요..."></textarea>
-                    <button type="button" onclick="submitComment(${post.id})">댓글 달기</button>
-                `;
-
-                container.appendChild(postElement);
-            });
-
-            // 좋아요 버튼 이벤트 리스너 추가
-            document.addEventListener('click', function(event) {
-                if (event.target && event.target.matches('.like-btn')) {
-                    handleLikeButton(event.target);
-                }
-            });
-        }
-
-        // 좋아요 버튼 클릭 처리
-        async function handleLikeButton(button) {
-            const postId = button.dataset.id;
-            const response = await fetch(`/api/posts/${postId}/like`, {
-                method: 'POST',
-            });
-
-            if (response.ok) {
-                const likeCountSpan = button.querySelector('.like-count');
-                let likeCount = parseInt(likeCountSpan.textContent, 10);
-                likeCount++;
-                likeCountSpan.textContent = likeCount;
-            } else {
-                alert('좋아요 처리에 실패했습니다.');
-            }
-        }
-
-        // 댓글 제출
-        async function submitComment(postId) {
-            const commentInput = document.getElementById(`comment-input-${postId}`);
-            const comment = commentInput.value;
-
-            const response = await fetch(`/api/posts/${postId}/comments`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ comment }),
-            });
-
-            if (response.ok) {
-                loadComments(postId); // 댓글을 성공적으로 추가한 후 댓글 목록을 새로고침
-                commentInput.value = ''; // 댓글 입력란 초기화
-            } else {
-                alert('댓글 작성에 실패했습니다.');
-            }
-        }
-
-        // 댓글 로드
-        async function loadComments(postId) {
-            const response = await fetch(`/api/posts/${postId}/comments`);
-            const comments = await response.json();
-
-            const commentSection = document.getElementById(`comments-${postId}`);
-            commentSection.innerHTML = ''; // 기존 댓글 삭제
-
-            comments.forEach(comment => {
-                const commentElement = document.createElement('div');
-                commentElement.classList.add('comment');
-                commentElement.textContent = comment.content;
-                commentSection.appendChild(commentElement);
-            });
-        }
-
-        // 페이지 로드 시 게시글 및 댓글 로드
-        window.onload = loadPosts;
-    </script>
-
 </body>
 </html>
